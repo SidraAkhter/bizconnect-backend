@@ -40,7 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [config.FRONTEND_ORIGIN, "http://localhost:5173"],
+    origin: [config.FRONTEND_ORIGIN, "http://localhost:5000"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With"],
@@ -71,9 +71,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
-app.get("/", asyncHandler(async (req, res: Response) => {
-  throw new BadRequestException("This is a bad request", ErrorCodeEnum.AUTH_INVALID_TOKEN);
-}));
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Backend is running ✅" });
+});
 
 app.get(`${BASE_PATH}/debug-session`, debugSessionController);
 app.get(`${BASE_PATH}/debug-workspace/:id`, debugWorkspaceController);
