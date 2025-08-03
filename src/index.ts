@@ -113,7 +113,9 @@ io.on("connection", (socket) => {
 });
 
 // Start server
-server.listen(config.PORT, async () => {
-  console.log(`🚀 Server listening on port ${config.PORT} in ${config.NODE_ENV}`);
+const PORT = process.env.PORT || config.PORT || 5000;
+
+server.listen(PORT, async () => {
+  console.log(`🚀 Server listening on port ${PORT} in ${config.NODE_ENV}`);
   await connectDatabase();
 });

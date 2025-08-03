@@ -92,7 +92,8 @@ io.on("connection", (socket) => {
     });
 });
 // Start server
-server.listen(app_config_1.config.PORT, async () => {
-    console.log(`🚀 Server listening on port ${app_config_1.config.PORT} in ${app_config_1.config.NODE_ENV}`);
+const PORT = process.env.PORT || app_config_1.config.PORT || 5000;
+server.listen(PORT, async () => {
+    console.log(`🚀 Server listening on port ${PORT} in ${app_config_1.config.NODE_ENV}`);
     await (0, database_config_1.default)();
 });
