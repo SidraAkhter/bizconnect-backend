@@ -21,6 +21,29 @@ import { getMemberRoleInWorkspace } from "../services/member.service";
 import { Permissions } from "../enums/role.enum";
 import { roleGuard } from "../utils/roleGuard";
 import { updateWorkspaceSchema } from "../validation/workspace.validation";
+import Workspace from "./workspace.model";
+import WorkspaceMember from "./workspaceMember.model";
+
+export const getMyWorkspacesController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+
+    const ownedWorkspaces = await Workspace.find({ owner: userId });
+
+    const memberWorkspaces = await WorkspaceMember.find({
+      userId: userId,
+    }).distinct("workspaceId");
+
+    const sharedWorkspaces = await Workspace.find({
+      _id: { $in: memberWorkspaces },
+    });
+
+    const allWorkspaces = [...ownedWorkspaces, ...sharedWorkspaces];
+
+    return res.status(HTTPSTATUS.OK).json(allWorkspaces);
+  }
+);
+
 
 export const createWorkspaceController = asyncHandler(
   async (req: Request, res: Response) => {

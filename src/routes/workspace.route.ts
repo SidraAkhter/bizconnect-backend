@@ -8,7 +8,7 @@ import {
   getWorkspaceByIdController,
   getWorkspaceMembersController,
   updateWorkspaceByIdController,
-} from "../controllers/workspace.controller";
+} from "../models/workspace.controller";
 
 const workspaceRoutes = Router();
 
