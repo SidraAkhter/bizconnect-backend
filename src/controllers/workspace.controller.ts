@@ -21,8 +21,8 @@ import { getMemberRoleInWorkspace } from "../services/member.service";
 import { Permissions } from "../enums/role.enum";
 import { roleGuard } from "../utils/roleGuard";
 import { updateWorkspaceSchema } from "../validation/workspace.validation";
-import Workspace from "./workspace.model";
-import WorkspaceMember from "./workspaceMember.model";
+import Workspace from "../models/workspace.model";
+import WorkspaceMember from "../models/workspaceMember.model";
 
 export const getMyWorkspacesController = asyncHandler(
   async (req: Request, res: Response) => {
