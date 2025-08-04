@@ -37,3 +37,4 @@ workspaceRoutes.get("/:id/analytics", getWorkspaceAnalyticsController);
 workspaceRoutes.patch("/:id/members/role", changeWorkspaceMemberRoleController);
 
 export default workspaceRoutes;
+console.log("✅ Workspace routes loaded");
