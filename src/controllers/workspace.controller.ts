@@ -5,6 +5,7 @@ import {
   changeRoleSchema,
   createWorkspaceSchema,
   workspaceIdSchema,
+  updateWorkspaceSchema,
 } from "../validation/workspace.validation";
 import { HTTPSTATUS } from "../config/http.config";
 import {
@@ -20,10 +21,38 @@ import {
 import { getMemberRoleInWorkspace } from "../services/member.service";
 import { Permissions } from "../enums/role.enum";
 import { roleGuard } from "../utils/roleGuard";
-import { updateWorkspaceSchema } from "../validation/workspace.validation";
 import Workspace from "../models/workspace.model";
 import WorkspaceMember from "../models/workspaceMember.model";
 
+// ✅ GET: /api/workspaces/:id
+export const getWorkspaceByIdController = asyncHandler(
+  async (req: Request, res: Response) => {
+    console.log("🔍 Route Hit: GET /api/workspaces/:id");
+    console.log("👉 Workspace ID:", req.params.id);
+    console.log("👉 User:", req.user);
+
+    if (req.params.id === "undefined") {
+      return res.status(HTTPSTATUS.BAD_REQUEST).json({
+        message: "Invalid workspace ID: 'undefined'",
+        error: "INVALID_WORKSPACE_ID",
+      });
+    }
+
+    const workspaceId = workspaceIdSchema.parse(req.params.id);
+    const userId = req.user?._id;
+
+    await getMemberRoleInWorkspace(userId, workspaceId);
+
+    const { workspace } = await getWorkspaceByIdService(workspaceId);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Workspace fetched successfully",
+      workspace,
+    });
+  }
+);
+
+// ✅ GET: /api/workspaces/my
 export const getMyWorkspacesController = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
@@ -44,12 +73,12 @@ export const getMyWorkspacesController = asyncHandler(
   }
 );
 
-
+// ✅ POST: /api/workspaces
 export const createWorkspaceController = asyncHandler(
   async (req: Request, res: Response) => {
     const body = createWorkspaceSchema.parse(req.body);
-
     const userId = req.user?._id;
+
     const { workspace } = await createWorkspaceService(userId, body);
 
     return res.status(HTTPSTATUS.CREATED).json({
@@ -59,12 +88,10 @@ export const createWorkspaceController = asyncHandler(
   }
 );
 
-// Controller: Get all workspaces the user is part of
-
+// ✅ GET: /api/workspaces
 export const getAllWorkspacesUserIsMemberController = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?._id;
-
     const { workspaces } = await getAllWorkspacesUserIsMemberService(userId);
 
     return res.status(HTTPSTATUS.OK).json({
@@ -74,30 +101,7 @@ export const getAllWorkspacesUserIsMemberController = asyncHandler(
   }
 );
 
-export const getWorkspaceByIdController = asyncHandler(
-  async (req: Request, res: Response) => {
-    // Handle the case where ID is 'undefined' as a string
-    if (req.params.id === 'undefined') {
-      return res.status(HTTPSTATUS.BAD_REQUEST).json({
-        message: "Invalid workspace ID: 'undefined' is not a valid workspace identifier",
-        error: "INVALID_WORKSPACE_ID"
-      });
-    }
-
-    const workspaceId = workspaceIdSchema.parse(req.params.id);
-    const userId = req.user?._id;
-
-    await getMemberRoleInWorkspace(userId, workspaceId);
-
-    const { workspace } = await getWorkspaceByIdService(workspaceId);
-
-    return res.status(HTTPSTATUS.OK).json({
-      message: "Workspace fetched successfully",
-      workspace,
-    });
-  }
-);
-
+// ✅ GET: /api/workspaces/:id/members
 export const getWorkspaceMembersController = asyncHandler(
   async (req: Request, res: Response) => {
     const workspaceId = workspaceIdSchema.parse(req.params.id);
@@ -116,16 +120,16 @@ export const getWorkspaceMembersController = asyncHandler(
   }
 );
 
+// ✅ GET: /api/workspaces/:id/analytics
 export const getWorkspaceAnalyticsController = asyncHandler(
   async (req: Request, res: Response) => {
-    // Handle the case where ID is 'undefined' as a string
-    if (req.params.id === 'undefined') {
+    if (req.params.id === "undefined") {
       return res.status(HTTPSTATUS.BAD_REQUEST).json({
-        message: "Invalid workspace ID: 'undefined' is not a valid workspace identifier",
-        error: "INVALID_WORKSPACE_ID"
+        message: "Invalid workspace ID: 'undefined'",
+        error: "INVALID_WORKSPACE_ID",
       });
     }
-    
+
     const workspaceId = workspaceIdSchema.parse(req.params.id);
     const userId = req.user?._id;
 
@@ -141,6 +145,7 @@ export const getWorkspaceAnalyticsController = asyncHandler(
   }
 );
 
+// ✅ PATCH: /api/workspaces/:id/members/role
 export const changeWorkspaceMemberRoleController = asyncHandler(
   async (req: Request, res: Response) => {
     const workspaceId = workspaceIdSchema.parse(req.params.id);
@@ -164,6 +169,7 @@ export const changeWorkspaceMemberRoleController = asyncHandler(
   }
 );
 
+// ✅ PATCH: /api/workspaces/:id
 export const updateWorkspaceByIdController = asyncHandler(
   async (req: Request, res: Response) => {
     const workspaceId = workspaceIdSchema.parse(req.params.id);
@@ -187,10 +193,10 @@ export const updateWorkspaceByIdController = asyncHandler(
   }
 );
 
+// ✅ DELETE: /api/workspaces/:id
 export const deleteWorkspaceByIdController = asyncHandler(
   async (req: Request, res: Response) => {
     const workspaceId = workspaceIdSchema.parse(req.params.id);
-
     const userId = req.user?._id;
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
