@@ -37,20 +37,21 @@ export const googleLoginCallback = asyncHandler(
     }
     
     // Extract workspace ID, ensuring we handle both string and ObjectId formats
-    let workspaceId;
-    if (req.user.currentWorkspace) {
-      // Handle cases where currentWorkspace could be an ObjectId, string, or object with _id
-      workspaceId = typeof req.user.currentWorkspace === 'object' && req.user.currentWorkspace._id 
-        ? req.user.currentWorkspace._id.toString()
-        : req.user.currentWorkspace.toString();
-    }
+    // Extract workspace ID if available
+let workspaceId;
+if (req.user.currentWorkspace) {
+  workspaceId = typeof req.user.currentWorkspace === 'object' && req.user.currentWorkspace._id 
+    ? req.user.currentWorkspace._id.toString()
+    : req.user.currentWorkspace.toString();
+}
 
-    if (!workspaceId) {
-      console.error("No current workspace found in user object:", req.user);
-      return res.redirect(
-        `${config.FRONTEND_GOOGLE_CALLBACK_URL}?status=failure&error=no_workspace`
-      );
-    }
+// Determine final redirect URL
+const redirectPath = workspaceId 
+  ? `/workspace/${workspaceId}` 
+  : `/dashboard`;
+
+const fullRedirectUrl = `${redirectUrlBase}${redirectPath}`;
+
 
     // Create a simple HTML page with JavaScript to set a cookie and redirect
     const html = `
@@ -64,7 +65,8 @@ export const googleLoginCallback = asyncHandler(
           document.cookie = 'auth_user=' + JSON.stringify(${JSON.stringify(req.user)}) + ';path=/;max-age=86400';
           
           // Redirect to the workspace using the dynamic redirectUrl
-          window.location.href = '${redirectUrlBase}/workspace/${workspaceId}';
+          window.location.href = '${fullRedirectUrl}';
+
         </script>
       </head>
       <body>
