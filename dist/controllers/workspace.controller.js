@@ -1,6 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteWorkspaceByIdController = exports.updateWorkspaceByIdController = exports.changeWorkspaceMemberRoleController = exports.getWorkspaceAnalyticsController = exports.getWorkspaceMembersController = exports.getWorkspaceByIdController = exports.getAllWorkspacesUserIsMemberController = exports.createWorkspaceController = void 0;
+exports.deleteWorkspaceByIdController = exports.updateWorkspaceByIdController = exports.changeWorkspaceMemberRoleController = exports.getWorkspaceAnalyticsController = exports.getWorkspaceMembersController = exports.getWorkspaceByIdController = exports.getAllWorkspacesUserIsMemberController = exports.createWorkspaceController = exports.getMyWorkspacesController = void 0;
 const asyncHandler_middleware_1 = require("../middlewares/asyncHandler.middleware");
 const workspace_validation_1 = require("../validation/workspace.validation");
 const http_config_1 = require("../config/http.config");
@@ -9,6 +12,20 @@ const member_service_1 = require("../services/member.service");
 const role_enum_1 = require("../enums/role.enum");
 const roleGuard_1 = require("../utils/roleGuard");
 const workspace_validation_2 = require("../validation/workspace.validation");
+const workspace_model_1 = __importDefault(require("../models/workspace.model"));
+const workspaceMember_model_1 = __importDefault(require("../models/workspaceMember.model"));
+exports.getMyWorkspacesController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
+    const userId = req.user?._id;
+    const ownedWorkspaces = await workspace_model_1.default.find({ owner: userId });
+    const memberWorkspaces = await workspaceMember_model_1.default.find({
+        userId: userId,
+    }).distinct("workspaceId");
+    const sharedWorkspaces = await workspace_model_1.default.find({
+        _id: { $in: memberWorkspaces },
+    });
+    const allWorkspaces = [...ownedWorkspaces, ...sharedWorkspaces];
+    return res.status(http_config_1.HTTPSTATUS.OK).json(allWorkspaces);
+});
 exports.createWorkspaceController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const body = workspace_validation_1.createWorkspaceSchema.parse(req.body);
     const userId = req.user?._id;

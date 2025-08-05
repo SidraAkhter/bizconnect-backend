@@ -6,6 +6,20 @@ import { HTTPSTATUS } from "../config/http.config";
 import { registerUserService } from "../services/auth.service";
 import passport from "passport";
 
+export const getMeController = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    return res.status(200).json({
+      message: "User info fetched successfully",
+      user: req.user,
+    });
+  }
+);
+
+
 export const googleLoginCallback = asyncHandler(
   async (req: Request, res: Response) => {
     console.log("Google login callback:", req.user);

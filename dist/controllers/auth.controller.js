@@ -3,13 +3,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkGoogleLoginStatus = exports.logOutController = exports.loginController = exports.registerUserController = exports.googleLoginCallback = void 0;
+exports.checkGoogleLoginStatus = exports.logOutController = exports.loginController = exports.registerUserController = exports.googleLoginCallback = exports.getMeController = void 0;
 const asyncHandler_middleware_1 = require("../middlewares/asyncHandler.middleware");
 const app_config_1 = require("../config/app.config");
 const auth_validation_1 = require("../validation/auth.validation");
 const http_config_1 = require("../config/http.config");
 const auth_service_1 = require("../services/auth.service");
 const passport_1 = __importDefault(require("passport"));
+exports.getMeController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    return res.status(200).json({
+        message: "User info fetched successfully",
+        user: req.user,
+    });
+});
 exports.googleLoginCallback = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     console.log("Google login callback:", req.user);
     console.log("Session:", req.session);
