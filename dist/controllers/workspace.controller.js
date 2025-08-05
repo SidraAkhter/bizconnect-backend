@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteWorkspaceByIdController = exports.updateWorkspaceByIdController = exports.changeWorkspaceMemberRoleController = exports.getWorkspaceAnalyticsController = exports.getWorkspaceMembersController = exports.getWorkspaceByIdController = exports.getAllWorkspacesUserIsMemberController = exports.createWorkspaceController = exports.getMyWorkspacesController = void 0;
+exports.deleteWorkspaceByIdController = exports.updateWorkspaceByIdController = exports.changeWorkspaceMemberRoleController = exports.getWorkspaceAnalyticsController = exports.getWorkspaceMembersController = exports.getAllWorkspacesUserIsMemberController = exports.createWorkspaceController = exports.getMyWorkspacesController = exports.getWorkspaceByIdController = void 0;
 const asyncHandler_middleware_1 = require("../middlewares/asyncHandler.middleware");
 const workspace_validation_1 = require("../validation/workspace.validation");
 const http_config_1 = require("../config/http.config");
@@ -11,9 +11,29 @@ const workspace_service_1 = require("../services/workspace.service");
 const member_service_1 = require("../services/member.service");
 const role_enum_1 = require("../enums/role.enum");
 const roleGuard_1 = require("../utils/roleGuard");
-const workspace_validation_2 = require("../validation/workspace.validation");
 const workspace_model_1 = __importDefault(require("../models/workspace.model"));
 const workspaceMember_model_1 = __importDefault(require("../models/workspaceMember.model"));
+// ✅ GET: /api/workspaces/:id
+exports.getWorkspaceByIdController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
+    console.log("🔍 Route Hit: GET /api/workspaces/:id");
+    console.log("👉 Workspace ID:", req.params.id);
+    console.log("👉 User:", req.user);
+    if (req.params.id === "undefined") {
+        return res.status(http_config_1.HTTPSTATUS.BAD_REQUEST).json({
+            message: "Invalid workspace ID: 'undefined'",
+            error: "INVALID_WORKSPACE_ID",
+        });
+    }
+    const workspaceId = workspace_validation_1.workspaceIdSchema.parse(req.params.id);
+    const userId = req.user?._id;
+    await (0, member_service_1.getMemberRoleInWorkspace)(userId, workspaceId);
+    const { workspace } = await (0, workspace_service_1.getWorkspaceByIdService)(workspaceId);
+    return res.status(http_config_1.HTTPSTATUS.OK).json({
+        message: "Workspace fetched successfully",
+        workspace,
+    });
+});
+// ✅ GET: /api/workspaces/my
 exports.getMyWorkspacesController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const userId = req.user?._id;
     const ownedWorkspaces = await workspace_model_1.default.find({ owner: userId });
@@ -26,6 +46,7 @@ exports.getMyWorkspacesController = (0, asyncHandler_middleware_1.asyncHandler)(
     const allWorkspaces = [...ownedWorkspaces, ...sharedWorkspaces];
     return res.status(http_config_1.HTTPSTATUS.OK).json(allWorkspaces);
 });
+// ✅ POST: /api/workspaces
 exports.createWorkspaceController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const body = workspace_validation_1.createWorkspaceSchema.parse(req.body);
     const userId = req.user?._id;
@@ -35,7 +56,7 @@ exports.createWorkspaceController = (0, asyncHandler_middleware_1.asyncHandler)(
         workspace,
     });
 });
-// Controller: Get all workspaces the user is part of
+// ✅ GET: /api/workspaces
 exports.getAllWorkspacesUserIsMemberController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const userId = req.user?._id;
     const { workspaces } = await (0, workspace_service_1.getAllWorkspacesUserIsMemberService)(userId);
@@ -44,23 +65,7 @@ exports.getAllWorkspacesUserIsMemberController = (0, asyncHandler_middleware_1.a
         workspaces,
     });
 });
-exports.getWorkspaceByIdController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
-    // Handle the case where ID is 'undefined' as a string
-    if (req.params.id === 'undefined') {
-        return res.status(http_config_1.HTTPSTATUS.BAD_REQUEST).json({
-            message: "Invalid workspace ID: 'undefined' is not a valid workspace identifier",
-            error: "INVALID_WORKSPACE_ID"
-        });
-    }
-    const workspaceId = workspace_validation_1.workspaceIdSchema.parse(req.params.id);
-    const userId = req.user?._id;
-    await (0, member_service_1.getMemberRoleInWorkspace)(userId, workspaceId);
-    const { workspace } = await (0, workspace_service_1.getWorkspaceByIdService)(workspaceId);
-    return res.status(http_config_1.HTTPSTATUS.OK).json({
-        message: "Workspace fetched successfully",
-        workspace,
-    });
-});
+// ✅ GET: /api/workspaces/:id/members
 exports.getWorkspaceMembersController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const workspaceId = workspace_validation_1.workspaceIdSchema.parse(req.params.id);
     const userId = req.user?._id;
@@ -73,12 +78,12 @@ exports.getWorkspaceMembersController = (0, asyncHandler_middleware_1.asyncHandl
         roles,
     });
 });
+// ✅ GET: /api/workspaces/:id/analytics
 exports.getWorkspaceAnalyticsController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
-    // Handle the case where ID is 'undefined' as a string
-    if (req.params.id === 'undefined') {
+    if (req.params.id === "undefined") {
         return res.status(http_config_1.HTTPSTATUS.BAD_REQUEST).json({
-            message: "Invalid workspace ID: 'undefined' is not a valid workspace identifier",
-            error: "INVALID_WORKSPACE_ID"
+            message: "Invalid workspace ID: 'undefined'",
+            error: "INVALID_WORKSPACE_ID",
         });
     }
     const workspaceId = workspace_validation_1.workspaceIdSchema.parse(req.params.id);
@@ -91,6 +96,7 @@ exports.getWorkspaceAnalyticsController = (0, asyncHandler_middleware_1.asyncHan
         analytics,
     });
 });
+// ✅ PATCH: /api/workspaces/:id/members/role
 exports.changeWorkspaceMemberRoleController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const workspaceId = workspace_validation_1.workspaceIdSchema.parse(req.params.id);
     const { memberId, roleId } = workspace_validation_1.changeRoleSchema.parse(req.body);
@@ -103,9 +109,10 @@ exports.changeWorkspaceMemberRoleController = (0, asyncHandler_middleware_1.asyn
         member,
     });
 });
+// ✅ PATCH: /api/workspaces/:id
 exports.updateWorkspaceByIdController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const workspaceId = workspace_validation_1.workspaceIdSchema.parse(req.params.id);
-    const { name, description } = workspace_validation_2.updateWorkspaceSchema.parse(req.body);
+    const { name, description } = workspace_validation_1.updateWorkspaceSchema.parse(req.body);
     const userId = req.user?._id;
     const { role } = await (0, member_service_1.getMemberRoleInWorkspace)(userId, workspaceId);
     (0, roleGuard_1.roleGuard)(role, [role_enum_1.Permissions.EDIT_WORKSPACE]);
@@ -115,6 +122,7 @@ exports.updateWorkspaceByIdController = (0, asyncHandler_middleware_1.asyncHandl
         workspace,
     });
 });
+// ✅ DELETE: /api/workspaces/:id
 exports.deleteWorkspaceByIdController = (0, asyncHandler_middleware_1.asyncHandler)(async (req, res) => {
     const workspaceId = workspace_validation_1.workspaceIdSchema.parse(req.params.id);
     const userId = req.user?._id;
