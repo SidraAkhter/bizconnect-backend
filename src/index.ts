@@ -26,7 +26,9 @@ import "./config/passport.config";
 const app = express();
 import Workspace from "./models/workspace.model"; // model ka path sahi ho
 
-app.get("/debug/workspaces", async (req, res) => {
+const BASE_PATH = config.BASE_PATH; // ✅ move this up
+
+app.get(`${BASE_PATH}/debug/workspaces`, async (req, res) => {
   try {
     const workspaces = await Workspace.find();
     res.json(workspaces);
@@ -35,9 +37,6 @@ app.get("/debug/workspaces", async (req, res) => {
     res.status(500).send("Error fetching workspaces");
   }
 });
-
-
-const BASE_PATH = config.BASE_PATH;
 
 // ✅ Middlewares
 app.use(express.json());
