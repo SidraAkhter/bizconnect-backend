@@ -28,7 +28,7 @@ import Workspace from "./models/workspace.model"; // model ka path sahi ho
 
 const BASE_PATH = config.BASE_PATH; // ✅ move this up
 
-app.get(`${BASE_PATH}/debug/workspaces`, async (req, res) => {
+app.get(`${BASE_PATH}/debug/workspace`, async (req, res) => {
   try {
     const workspaces = await Workspace.find();
     res.json(workspaces);
