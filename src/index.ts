@@ -28,15 +28,6 @@ import Workspace from "./models/workspace.model"; // model ka path sahi ho
 
 const BASE_PATH = config.BASE_PATH; // ✅ move this up
 
-app.get(`${BASE_PATH}/debug/workspace`, async (req, res) => {
-  try {
-    const workspaces = await Workspace.find();
-    res.json(workspaces);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error fetching workspaces");
-  }
-});
 
 // ✅ Middlewares
 app.use(express.json());
@@ -104,4 +95,14 @@ const PORT = config.PORT || 5000;
 server.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   await connectDatabase();
+});
+// ✅ Debug route (hardcoded path)
+app.get("/api/v1/debug/workspace", async (req, res) => {
+  try {
+    const workspaces = await Workspace.find();
+    res.json(workspaces);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fetching workspaces");
+  }
 });
